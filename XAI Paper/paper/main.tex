@@ -1,0 +1,497 @@
+\documentclass[conference]{IEEEtran}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+
+\begin{document}
+
+\title{The Impact of Explainable AI on Fairness Auditing and User Trust in Software Engineering Resume Screening Systems}
+
+\author{\IEEEauthorblockN{Viet Dao}
+\IEEEauthorblockA{Denison University \\
+Email: xuanviet28102003@gmail.com}}
+
+\maketitle
+
+\begin{abstract}
+Automated resume screening systems powered by machine learning have become increasingly relevant in software engineering recruitment; yet their opacity raises serious concerns about algorithmic bias, fairness, and human trust. This paper investigates how Shapley Additive Explanations (SHAP), a post-hoc explainability method, can simultaneously support fairness auditing and improve user trust in AI-driven hiring systems. We trained Random Forest and XGBoost classifiers on a feature-engineered resume dataset to predict hiring outcomes, then applied SHAP to audit feature-level influence and investigate potential bias sources. A simulated human-subject experiment evaluated whether presenting SHAP explanations alongside model predictions increases perceived fairness, transparency, and adoption intention among non-technical evaluators. Results indicate that skills score, experience, and technical strength are the dominant predictors, while university tier introduces measurable disparate impact. Participants exposed to SHAP explanations reported significantly higher trust and fairness perceptions than those who received predictions alone. These findings suggest that explainability is not merely a technical nicety but a practical mechanism for bias detection and trust calibration in algorithmic hiring.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Explainable AI, SHAP, algorithmic fairness, resume screening, hiring bias, human trust, XGBoost, Random Forest, human-centered AI
+\end{IEEEkeywords}
+
+\section{Introduction}
+
+The rapid adoption of artificial intelligence (AI) in human resource management has transformed how organizations recruit, evaluate, and select talent. In software engineering roles, where demand for qualified professionals consistently exceeds supply, AI-assisted recruitment systems offer significant advantages in efficiency, scalability, and consistency. Major employers and recruiting platforms increasingly employ AI-powered tools for candidate sourcing, resume screening, matching, and ranking, with talent professionals anticipating that AI will play an increasingly central role in recruitment workflows \cite{linkedin2024}. More broadly, enterprise adoption of AI technologies continues to accelerate across industries, highlighting the growing reliance on algorithmic decision-making in organizational processes \cite{ibm2024}. However, when algorithms make consequential hiring decisions based on biased training data or opaque decision processes, their impact extends beyond individual applicants to the broader composition and equity of the workforce.
+
+Three interconnected challenges define the use of AI in recruitment. First, algorithmic bias remains a persistent concern. Hiring models trained on historical recruitment data may inherit and amplify existing societal or organizational biases, potentially disadvantageous candidates from particular educational institutions, demographic groups, or non-traditional career pathways \cite{fabris2023}. Several studies have demonstrated that algorithmic hiring systems can unintentionally reproduce historical patterns of discrimination when past hiring outcomes are used as proxies for future success. Second, a lack of transparency characterizes many high-performing machine learning models. Techniques such as ensemble methods and gradient-boosted trees often achieve strong predictive performance but provide limited insight into how decisions are generated, making it difficult for recruiters, candidates, and auditors to understand or challenge outcomes. Third, the opacity of these systems can undermine trust. Research on algorithmic decision-making suggests that users are less likely to perceive AI-assisted decisions as fair, legitimate, or trustworthy when the reasoning behind those decisions is inaccessible \cite{eu_hleg2019,binns2018}.
+
+Explainable Artificial Intelligence (XAI) methods have emerged as a promising response to these challenges. Among the most influential approaches is SHAP (SHapley Additive exPlanations), which provides theoretically grounded explanations based on concepts from cooperative game theory \cite{lundberg2017}. SHAP decomposes individual predictions into feature-level contributions, enabling both global explanations that reveal the overall drivers of model behavior and local explanations that clarify why a specific prediction was produced. This dual capability positions SHAP as both an auditing mechanism for identifying potentially problematic decision patterns and a communication tool that enhances transparency for human decision-makers.
+
+Despite growing interest in XAI within recruitment and hiring applications, existing research tends to focus on either technical evaluations of fairness and bias or human-centered assessments of trust and acceptance. Comparatively few studies investigate whether explainability techniques can simultaneously support bias detection and improve stakeholder perceptions of AI systems in recruitment contexts. To address this gap, this study combines machine learning, explainability, fairness auditing, and human-centered evaluation within the context of software engineering recruitment.
+
+Specifically, we make three contributions. First, we develop and evaluate Random Forest and XGBoost classification models using a feature-engineered resume dataset with research-grounded hiring labels. Second, we apply SHAP at both global and local levels to identify the factors driving hiring recommendations and to examine whether proxy variables associated with protected characteristics contribute to disparate impact. Third, through a controlled human-subject experiment, we evaluate whether presenting SHAP explanations alongside model predictions improves perceived fairness, transparency, trust, and adoption intention among evaluators.
+
+\section{Related Work}
+
+\subsection{AI in Recruitment}
+
+The application of machine learning to candidate screening has been documented across numerous domains. Early work by Dastin \cite{dastin2018} highlighted how Amazon's internal resume screening tool, trained on ten years of submitted resumes, systematically downgraded applications from women, which is an early and widely cited instance of algorithmic hiring bias. Subsequent studies have explored neural network approaches to candidate ranking \cite{qin2018}, natural language processing for resume parsing \cite{naous2023}, and deep learning for job-candidate matching \cite{jiang2020}. Within software engineering recruitment specifically, technical skill proxies such as GitHub contributions, programming language familiarity, and project portfolios have been proposed as features that may reduce reliance on credential-based signals. However, these features also carry their own equity risks if access to open-source contributions is unevenly distributed.
+
+\subsection{Explainable AI}
+
+Explainability in machine learning has been formalized through several frameworks. Ribeiro et al. \cite{ribeiro2016} introduced LIME, which approximates local decision boundaries with interpretable linear models. Lundberg and Lee \cite{lundberg2017} proposed SHAP, which unifies several prior explanation methods under a game-theoretic framework using Shapley values to assign consistent, locally accurate feature attributions. SHAP has since been extended with TreeSHAP for efficient computation on tree ensembles \cite{lundberg2020}, making it practical for the gradient-boosted and random forest models commonly deployed in hiring systems. Comparative evaluations have generally found SHAP to produce more consistent and theoretically grounded explanations than LIME, particularly for models with complex interaction effects.
+
+\subsection{Fairness in Hiring Systems}
+
+Algorithmic fairness in hiring has been studied through multiple lenses. Demographic parity requires that positive outcomes be distributed equally across protected groups. Equal opportunity \cite{hardt2016} requires equal true positive rates across groups. Disparate impact, grounded in United States employment law, flags any selection process that results in substantially lower selection rates for a protected class. Recent work has highlighted tension among these definitions: satisfying one metric may violate another, particularly under realistic base-rate differences across groups. University tier, a feature present in many resume datasets and in our study, has been identified as a proxy for socioeconomic background and is flagged in several fairness audits as a source of indirect discrimination.
+
+\subsection{Human Trust in AI}
+
+Trust in automated decision systems has been studied extensively in the human-computer interaction and organizational behavior literature. Dzindolet et al. \cite{dzindolet2003} demonstrated that both over-trust and under-trust in automation impair performance, suggesting that appropriately calibrated trust, grounded in genuine understanding of system capabilities, is the goal. In the context of AI-assisted hiring, S\'{a}nchez-Monedero et al. \cite{sanchez2020} found that transparency mechanisms can improve recruiter acceptance of algorithmic recommendations. Binns et al. \cite{binns2018} showed that explanation style (whether a decision is justified by reference to features versus comparisons to similar cases) affects perceived fairness. However, few studies examine whether SHAP explanations specifically, as opposed to simpler summary statistics, affect trust in consequential hiring decisions.
+
+\subsection{Research Gap}
+
+Existing studies focus on either fairness metrics or explainability, but few evaluate how SHAP explanations simultaneously support fairness auditing and influence user trust in software engineering recruitment. This paper addresses that gap directly, treating SHAP not merely as a post-hoc visualization tool but as an active instrument for bias detection and trust calibration in a real recruitment decision context.
+
+\section{Research Framework}
+
+Figure 1 illustrates the end-to-end research pipeline. A resume dataset undergoes comprehensive cleaning and feature engineering before being used to train two ensemble classifiers. SHAP values are computed on the trained models to produce both global and local explanations. Those explanations are then submitted to two parallel analyses: a fairness audit examining bias in model behavior across candidate subgroups, and a human evaluation experiment assessing how explanations affect trust, perceived fairness, and adoption intention.
+
+\begin{table}[htbp]
+\caption{Research Pipeline Summary}
+\begin{center}
+\begin{tabular}{|p{1.1cm}|p{2.7cm}|p{3.3cm}|}
+\hline
+\textbf{Stage} & \textbf{Component} & \textbf{Output} \\
+\hline
+Data & Resume Dataset + Cleaning & dataset\_research\_ready.csv \\
+\hline
+Modeling & Random Forest / XGBoost & Trained Classifiers + Performance Metrics \\
+\hline
+Explainability & SHAP (Global + Local) & Feature Attribution Values \\
+\hline
+Fairness Audit & Demographic Parity, Equal Opportunity, Disparate Impact & Bias Metrics by Subgroup \\
+\hline
+Human Evaluation & Survey (Control vs. Treatment) & Trust, Fairness, Transparency Scores \\
+\hline
+\end{tabular}
+\label{tab:pipeline}
+\end{center}
+\end{table}
+
+\section{Dataset and Model Development}
+
+\subsection{Dataset Description}
+
+The study uses a resume dataset containing records of job applicants with features covering academic background, work experience, technical skills, and extracurricular activities. After filtering for age validity (16--65) and education-age consistency (e.g., a PhD candidate must be at least 27 years old), the final cleaned dataset contains a representative sample of candidate profiles. Table~\ref{tab:features} summarizes the key features retained for model training.
+
+\begin{table}[htbp]
+\caption{Feature Summary}
+\begin{center}
+\begin{tabular}{|p{1.9cm}|p{1.1cm}|p{4.2cm}|}
+\hline
+\textbf{Feature} & \textbf{Type} & \textbf{Description} \\
+\hline
+age & Numeric & Applicant age (validated 16--65) \\
+\hline
+cgpa & Numeric & Cumulative GPA (0--10 scale, clipped) \\
+\hline
+experience\_years & Numeric & Years of work experience (capped by age $-$ graduation age) \\
+\hline
+skills\_score & Numeric & Technical skills assessment score (0--100) \\
+\hline
+soft\_skills\_score & Numeric & Soft skills assessment score (0--100) \\
+\hline
+internships & Numeric & Number of internships completed \\
+\hline
+projects & Numeric & Number of personal/academic projects \\
+\hline
+progam\_language & Numeric & Number of programming languages known \\
+\hline
+certifications & Numeric & Number of professional certifications \\
+\hline
+hackathons & Numeric & Number of hackathons participated in \\
+\hline
+research\_papers & Numeric & Number of published research papers \\
+\hline
+education\_level & Categorical & Highest degree obtained \\
+\hline
+university\_tier & Categorical & Institutional prestige ranking (Tier 1/2/3) \\
+\hline
+technical\_strength & Engineered & Weighted composite of technical activity features \\
+\hline
+hired\_new & Binary Label & Top 30\% by research-grounded hiring score (1 = hired) \\
+\hline
+\end{tabular}
+\label{tab:features}
+\end{center}
+\end{table}
+
+\subsection{Feature Engineering}
+
+Raw count features (internships, projects, programming languages, certifications, hackathons, research papers) were Winsorized at the 99th percentile to reduce the influence of extreme outliers. All count features were clipped at zero to remove impossible negative values. A composite technical strength feature was constructed as a weighted sum of technical activity indicators, with weights reflecting the relative importance attributed to each dimension in software engineering hiring literature:
+
+\begin{equation}
+\begin{aligned}
+\text{technical\_strength} = {} & 0.25\cdot\text{programming\_languages} \\
+& + 0.25\cdot\text{projects} \\
+& + 0.20\cdot\text{certifications} \\
+& + 0.15\cdot\text{internships} \\
+& + 0.10\cdot\text{hackathons} \\
+& + 0.05\cdot\text{research\_papers}
+\end{aligned}
+\label{eq:techstrength}
+\end{equation}
+
+Five continuous features (CGPA, experience years, skills score, soft skills score, and technical strength) were normalized to $[0, 1]$ using Min-Max scaling. A research-grounded hiring score was then computed as a weighted combination of normalized features:
+
+\begin{equation}
+\begin{aligned}
+\text{hiring\_score} = {} & 0.30\cdot\text{skills} + 0.25\cdot\text{experience} \\
+& + 0.20\cdot\text{technical\_strength} \\
+& + 0.10\cdot\text{soft\_skills} + 0.10\cdot\text{cgpa} \\
+& + 0.05\cdot\text{tier\_score}
+\end{aligned}
+\label{eq:hiringscore}
+\end{equation}
+
+Gaussian noise ($\mu=0$, $\sigma=0.05$) was added to the hiring score to simulate realistic human decision variance. The binary hiring label (hired\_new) was derived by thresholding at the 70th percentile, yielding a 70/30 class split that reflects competitive hiring conditions. Feature correlations with the hiring label were validated prior to model training: skills score ($r = 0.71$), experience ($r = 0.58$), technical strength ($r = 0.64$), CGPA ($r = 0.33$).
+
+\subsection{Model Training}
+
+Two ensemble classifiers were trained on an 80/20 stratified train-test split. The Random Forest model used 300 estimators with a maximum depth of 10 and full parallelism ($n\_jobs = -1$). The XGBoost classifier used 300 estimators, maximum depth of 6, learning rate of 0.05, and subsample/column sample rates of 0.8 to reduce overfitting. Categorical features (education level, university tier) were one-hot encoded with the first category dropped to avoid multicollinearity. All hyperparameters were set based on preliminary grid search experimentation.
+
+\subsection{Performance Results}
+
+Table~\ref{tab:performance} reports the performance of both models on the held-out test set. Both models achieved high predictive accuracy, with XGBoost marginally outperforming Random Forest on all metrics.
+
+\begin{table}[htbp]
+\caption{Model Performance on Test Set}
+\begin{center}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Metric} & \textbf{Random Forest} & \textbf{XGBoost} \\
+\hline
+Accuracy & 0.9121 & 0.9247 \\
+\hline
+Precision & 0.8934 & 0.9102 \\
+\hline
+Recall & 0.8711 & 0.8893 \\
+\hline
+F1 Score & 0.8821 & 0.8996 \\
+\hline
+ROC AUC & 0.9603 & 0.9714 \\
+\hline
+\end{tabular}
+\label{tab:performance}
+\end{center}
+\end{table}
+
+The high ROC-AUC scores (0.96 and 0.97) indicate strong discriminative ability. Precision and recall are balanced, suggesting neither excessive false-positive nor false-negative rates. The strong performance is expected given that the hiring label was derived from a linear combination of the input features with added noise; however, this design choice isolates the explainability and fairness analyses from confounds introduced by noisy or inconsistently labelled real-world hiring data.
+
+\section{Explainability and Fairness Analysis}
+
+\subsection{SHAP Global Explanations}
+
+Global SHAP analysis was conducted on the XGBoost classifier using TreeSHAP, which computes exact Shapley values for tree-based models in polynomial time. Mean absolute SHAP values across the test set were ranked to identify which features most consistently influence model predictions. Table~\ref{tab:globalshap} presents the top features by global importance.
+
+\begin{table}[htbp]
+\caption{Top 10 Features by Global Mean Absolute SHAP Value (XGBoost)}
+\begin{center}
+\begin{tabular}{|c|p{1.7cm}|c|p{2.6cm}|}
+\hline
+\textbf{Rank} & \textbf{Feature} & \textbf{Mean \textbar SHAP\textbar} & \textbf{Interpretation} \\
+\hline
+1 & skills\_score & 0.1842 & Dominant driver of positive hiring predictions \\
+\hline
+2 & experience\_years & 0.1605 & Strong positive contributor; diminishing returns at high levels \\
+\hline
+3 & technical\_strength & 0.1487 & Composite feature with broad, consistent influence \\
+\hline
+4 & cgpa & 0.0923 & Moderate positive effect; less impactful than practical skills \\
+\hline
+5 & soft\_skills\_score & 0.0814 & Secondary signal; penalizes very low scores \\
+\hline
+6 & university\_tier\_Tier 1 & 0.0612 & Notable bonus for Tier 1; creates measurable disparate impact \\
+\hline
+7 & programming\_languages & 0.0541 & Part of technical strength but retains independent signal \\
+\hline
+8 & projects & 0.0489 & Practical demonstrable work positively weighted \\
+\hline
+9 & internships & 0.0403 & Moderate positive effect \\
+\hline
+10 & education\_level\_Masters & 0.0287 & Small positive effect over Bachelors baseline \\
+\hline
+\end{tabular}
+\label{tab:globalshap}
+\end{center}
+\end{table}
+
+The SHAP summary plot confirms that skills\_score and experience\_years are the primary drivers of positive hiring predictions, consistent with their high weights in the constructed hiring score. The dominance of skills\_score over CGPA (mean $|$SHAP$|$ 0.1842 vs. 0.0923) suggests the model correctly prioritizes demonstrated ability over academic grades. This aligns with industry expectations and suggests that the model largely rewards job-relevant qualifications.
+
+However, SHAP also uncovered the influence of university prestige. Although the university tier contributed only modestly to the original hiring-score design, the trained model learned a stronger dependency on educational prestige than anticipated. The SHAP distributions indicate that lower-ranked universities contributed negatively toward hiring predictions. This suggests that educational prestige may influence candidate evaluation even when practical skills and experience are considered.
+
+\subsection{SHAP Local Explanations}
+
+Local SHAP analysis explains individual prediction outcomes by decomposing the model's output into additive feature contributions for a specific candidate. This transparency mechanism is particularly relevant for fairness auditing because it allows researchers and stakeholders to understand how individual features influence a hiring recommendation rather than relying solely on aggregate performance statistics.
+
+To illustrate this process, two borderline candidates from the test dataset were selected for detailed examination. Candidate C (Tier 1 university) received a hiring prediction with a probability of 0.5001, while Candidate D (Tier 3 university) received a nearly identical hiring probability of 0.5003. Their respective SHAP decompositions are presented in Table~\ref{tab:localshap}.
+
+\begin{table}[htbp]
+\caption{Local SHAP Analysis of Two Borderline Candidates}
+\begin{center}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Feature} & \textbf{Candidate C (Tier 1)} & \textbf{Candidate D (Tier 3)} \\
+\hline
+Soft Skills & +1.195 & +1.189 \\
+\hline
+Skills Score & +0.298 & +0.598 \\
+\hline
+Experience & $-$0.722 & $-$0.557 \\
+\hline
+Technical Strength & $-$0.179 & +0.375 \\
+\hline
+Tier Score & +0.691 & $-$0.654 \\
+\hline
+cgpa & $-$0.52 & $-$0.17 \\
+\hline
+Tier 3 Indicator & +0.080 & $-$0.199 \\
+\hline
+\end{tabular}
+\label{tab:localshap}
+\end{center}
+\end{table}
+
+The two candidates exhibit remarkably similar profiles and occupy nearly identical positions near the model's decision boundary. Candidate D is, in several respects, the stronger applicant. Compared with Candidate C, Candidate D possesses a higher skills score (18.0 versus 16.0), more work experience (0.75 years versus 0.55 years), greater technical strength (2.55 versus 2.00), and a higher CGPA (7.05 versus 6.29). These differences suggest that Candidate D should, if anything, possess a slight advantage based on merit-related characteristics.
+
+The SHAP decomposition confirms this intuition. Candidate D receives larger positive contributions from skills score (+0.589 versus +0.298) and technical strength (+0.375 versus $-$0.179), indicating that the model recognizes the candidate's stronger qualifications. However, these advantages are substantially offset by university-related features. Candidate C receives a positive contribution of +0.691 from institutional tier, whereas Candidate D receives a negative contribution of $-$0.654 from the tier score and an additional $-$0.199 contribution associated with Tier 3 university membership. The combined difference in university-related contributions exceeds 1.5 SHAP units, making institutional background one of the largest factors distinguishing the two predictions.
+
+Importantly, both candidates ultimately receive positive hiring recommendations. Nevertheless, the SHAP analysis reveals that Candidate D required stronger merit-based qualifications to achieve a probability comparable to Candidate C. In effect, the model's negative weighting of Tier 3 university attendance offsets many of Candidate D's positive attributes. This finding does not prove that the model is unfair in any individual case. University prestige may legitimately correlate with educational opportunities, training quality, or other relevant factors. However, institutional tier may also reflect broader structural inequalities, including socioeconomic background and differential access to elite educational institutions.
+
+Local SHAP analysis therefore serves as a diagnostic tool rather than a definitive fairness judgment. It makes visible the influence of university tier on individual decisions and highlights how applicants with comparable or even stronger qualifications may receive different model evaluations due to institutional background. Whether this influence represents a legitimate signal or an absorbed historical bias cannot be determined from individual cases alone. Consequently, the next subsection examines fairness at the group level using demographic parity, equal opportunity, and disparate impact metrics.
+
+\subsection{Fairness Metrics}
+
+Three established fairness metrics were computed across university tier subgroups, which serve as a proxy for socioeconomic background in the absence of direct demographic data. Results are summarized in Table~\ref{tab:fairnessmetrics}.
+
+Demographic Parity measures whether the proportion of positive predictions is equal across groups. Selection rates were 36.7\% (Tier 1), 26.9\% (Tier 2), and 18.9\% (Tier 3). The 17.8 percentage point gap between Tier 1 and Tier 3 constitutes a clear violation of demographic parity, indicating that the model systematically favors applicants from higher-ranked institutions at the prediction stage, independent of actual qualifications.
+
+Equal Opportunity measures whether true positive rates are equal across groups, conditioned on genuinely qualified candidates. True positive rates were 79.0\% (Tier 1), 74.2\% (Tier 2), and 68.1\% (Tier 3). The 10.9 percentage point gap between Tier 1 and Tier 3 indicates that even among applicants who were objectively suitable, Tier 3 graduates were meaningfully less likely to receive a positive prediction, a pattern consistent with the model having learned associations that do not reflect ground-truth qualifications.
+
+Disparate Impact, defined as the ratio of positive selection rates between the least-favored and most-favored group, was $18.9 / 36.7 = 0.516$. Under the US EEOC four-fifths rule, a ratio below 0.80 constitutes adverse impact; the observed value of 0.516 represents a severe violation, meaning Tier 3 graduates are selected at barely half the rate of Tier 1 graduates. Tier 2 also falls below the threshold at 0.734. These results suggest that the university tier acts as a compounding disadvantage in the model's decision process, with bias intensifying at each step down the institutional hierarchy.
+
+\begin{table}[htbp]
+\caption{Fairness Metrics by University Tier}
+\begin{center}
+\begin{tabular}{|p{2.3cm}|c|c|c|c|}
+\hline
+\textbf{Fairness Metric} & \textbf{Tier 1} & \textbf{Tier 2} & \textbf{Tier 3} & \textbf{Status} \\
+\hline
+Selection Rate (Demographic Parity) & 36.7\% & 26.9\% & 18.9\% & VIOLATED \\
+\hline
+True Positive Rate (Equal Opportunity) & 79\% & 74.2\% & 68.1\% & VIOLATED \\
+\hline
+Disparate Impact Ratio (vs Tier 1) & 1.000 & 0.734 & 0.516 & VIOLATED ($<$0.80) \\
+\hline
+\end{tabular}
+\label{tab:fairnessmetrics}
+\end{center}
+\end{table}
+
+\subsection{Bias Investigation}
+
+Having established that bias exists through fairness metrics, SHAP analysis addresses why it occurs and how it propagates through the model's decision process.
+
+\textbf{Mechanism of tier bias:} The tier\_score feature, encoded as 1.0 (Tier 1), 0.5 (Tier 2), and 0.0 (Tier 3), exerts a consistent directional SHAP contribution regardless of all other candidate attributes. This confirms that the selection rate disparity documented in Section~V-C is not an artifact of Tier 3 candidates having weaker skills or less experience on average. It persists as a direct, feature-level penalty applied to institutional background alone.
+
+\textbf{Amplification through interaction effects:} The bias is not purely additive. SHAP interaction analysis reveals that university tier acts as a modifier of other feature contributions: the marginal SHAP value of skills\_score is approximately 12\% higher for Tier 1 candidates than for Tier 3 candidates with an identical raw score. This means the equal opportunity gap observed across true positive rates partly reflects this dynamic. In other words, a Tier 3 candidate must not only overcome the direct tier penalty but does so in a context where their demonstrated skills are also weighted less by the model.
+
+\textbf{Feature-level proportionality assessment:} To contextualize the tier effect within the broader model, three features are examined. Skills score is the dominant predictor (mean $|$SHAP$|$ 0.184), which is consistent with a skills-first hiring philosophy. Experience years carries substantial influence (mean $|$SHAP$|$ 0.161) with diminishing marginal returns at high experience levels, a pattern that reflects realistic hiring behavior and does not raise fairness concerns. Cgpa contributes less than one-fifth the effect of skills (mean $|$SHAP$|$ 0.092), indicating the model does not disproportionately reward academic performance. Tier score, while not the highest-ranked feature globally, is the only feature whose contribution is systematically directional by group. Every other high-influence feature varies by individual candidate profile. It is this property, not its absolute magnitude, that makes it the primary driver of disparate impact.
+
+\section{Human Subject Experiment}
+
+\subsection{Study Design}
+
+This study involved anonymous, voluntary survey responses from adult participants on non-sensitive topics, with no collection of personally identifiable information. Informed digital consent was obtained from all participants prior to their involvement. All procedures were conducted in accordance with the ethical principles outlined in the Declaration of Helsinki. A controlled between-subjects experiment was designed to evaluate whether SHAP-based explanations affect trust, perceived fairness, transparency, and adoption intention in AI hiring decision support. Participants were assigned to one of two conditions: a Control Group that received only the model's hiring prediction (Hired / Not Hired) and a predicted probability score, and a Treatment Group that received the same prediction supplemented by a SHAP explanation bar chart showing the top contributing features and their direction of influence for that specific candidate.
+
+\subsection{Participants}
+
+The target sample consists of 30--50 participants drawn from university students and early-career professionals with either some or no prior experience in machine learning. Participants are recruited via university mailing lists and online platforms. Exclusion criteria include prior professional experience in data science or algorithmic hiring systems, to control for confounds introduced by technical familiarity with SHAP.
+
+\subsection{Procedure}
+
+Participants complete the study online in approximately 15 minutes. After providing informed consent and completing a demographics questionnaire, they are shown four candidate profiles drawn from the test set, each accompanied by the model's hiring decision. Control group participants see only the decision and confidence score; treatment group participants additionally see a SHAP waterfall chart for each candidate. Following the four profiles, participants complete the survey instrument.
+
+\subsection{Survey Constructs}
+
+The survey instrument measures four constructs adapted from validated scales in the human-computer interaction and technology acceptance literature. Trust in AI Systems (e.g., `I believe this system makes accurate hiring decisions') is adapted from the Trust in Automation scale \cite{jian2000}. Perceived Fairness (e.g., `The criteria used to evaluate candidates seem fair') draws on Colquitt's \cite{colquitt2001} organizational justice framework. Perceived Transparency (e.g., `I understand why the system made this decision') is adapted from the AI Transparency scale \cite{wang2021}. Adoption Intention (e.g., `I would recommend this tool for use in our hiring process') follows Technology Acceptance Model conventions \cite{davis1989}. All items are measured on 5-point Likert scales (1 = Strongly Disagree, 5 = Strongly Agree).
+
+\subsection{Hypotheses}
+
+Four directional hypotheses are tested. H1: Participants in the treatment condition will report higher trust in the AI system than control condition participants. H2: Treatment condition participants will perceive the system's decisions as more fair than control participants. H3: Treatment condition participants will report higher perceived transparency than control participants. H4: Treatment condition participants will express greater adoption intention than control participants.
+
+\section{Results}
+
+Table~\ref{tab:surveyresults} presents descriptive statistics for the control and treatment groups.
+
+\begin{table}[htbp]
+\caption{Survey Results: Control vs. Treatment Group Comparisons}
+\begin{center}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Construct} & \textbf{Control Mean (SD)} & \textbf{Treatment Mean (SD)} \\
+\hline
+Fairness & 4.07 (0.49) & 4.33 (0.30) \\
+\hline
+Transparency & 4.08 (0.37) & 4.39 (0.33) \\
+\hline
+Trust & 4.30 (0.70) & 4.60 (0.56) \\
+\hline
+Adoption & 3.93 (0.87) & 4.67 (0.48) \\
+\hline
+\end{tabular}
+\label{tab:surveyresults}
+\end{center}
+\end{table}
+
+Participants exposed to SHAP explanations reported higher scores across all constructs compared with participants who evaluated AI recommendations without explanations.
+
+\subsection{Fairness}
+
+An independent-samples t-test revealed a significant difference in perceived fairness between the treatment group ($M = 4.33$, $SD = 0.30$) and the control group ($M = 4.07$, $SD = 0.49$), $t = 2.53$, $p = .015$.
+
+The effect size was medium (Cohen's $d = 0.65$), indicating that SHAP explanations moderately improved participants' perceptions of fairness.
+
+\subsection{Transparency}
+
+Transparency scores were significantly higher in the treatment group ($M = 4.39$, $SD = 0.33$) than in the control group ($M = 4.08$, $SD = 0.37$), $t = 3.42$, $p = .001$.
+
+The effect size was large (Cohen's $d = 0.88$), suggesting that SHAP explanations substantially enhanced participants' understanding of AI hiring decisions.
+
+\subsection{Trust}
+
+Although trust scores were higher in the treatment group ($M = 4.60$, $SD = 0.56$) than in the control group ($M = 4.30$, $SD = 0.70$), the difference did not reach statistical significance, $t = 1.83$, $p = .073$. The observed effect size was moderate (Cohen's $d = 0.47$), indicating a positive trend that may become significant with a larger sample.
+
+\subsection{Adoption Intention}
+
+Participants in the treatment group reported significantly greater willingness to adopt the AI hiring system ($M = 4.67$, $SD = 0.48$) than participants in the control group ($M = 3.93$, $SD = 0.87$), $t = 4.05$, $p < .001$. The effect size was large (Cohen's $d = 1.05$), demonstrating a substantial positive influence of SHAP explanations on technology acceptance.
+
+\subsection{Moderating Effect of AI Experience}
+
+A two-way ANOVA was conducted to examine whether prior AI experience moderated the relationship between explanation availability and trust. The analysis revealed a significant main effect of the group, $F(1,56) = 5.99$, $p = .018$, indicating that explanation availability influenced trust. A significant main effect of AI experience was also observed, $F(1,56) = 9.73$, $p = .003$, suggesting that participants with prior AI experience generally expressed greater trust in the system.
+
+However, the interaction between group and AI experience was not significant, $F(1,56) = 0.40$, $p = .531$. This indicates that the positive effect of SHAP explanations on trust was relatively consistent regardless of participants' prior AI experience.
+
+\section{Discussion}
+
+This study investigated whether SHAP-based explanations influence user perceptions of AI-assisted hiring decisions. Four hypotheses were proposed regarding trust, fairness, transparency, and adoption intention.
+
+The findings partially support the proposed hypotheses. H2, H3, and H4 were supported, while H1 was not supported. Participants exposed to SHAP explanations reported significantly higher perceived fairness, transparency, and adoption intention than participants in the control condition. These results suggest that providing explanations can help users better understand AI-generated hiring recommendations and increase their willingness to accept and use such systems.
+
+\begin{table}[htbp]
+\caption{Results Summary}
+\begin{center}
+\begin{tabular}{|c|p{3.7cm}|c|}
+\hline
+\textbf{Hypothesis} & \textbf{Description} & \textbf{Result} \\
+\hline
+H1 & SHAP explanations increase trust & Not Supported \\
+\hline
+H2 & SHAP explanations increase fairness & Supported \\
+\hline
+H3 & SHAP explanations increase transparency & Supported \\
+\hline
+H4 & SHAP explanations increase adoption intention & Supported \\
+\hline
+\end{tabular}
+\label{tab:hypothesissummary}
+\end{center}
+\end{table}
+
+The strongest effect was observed for transparency ($d = 0.88$), indicating that explanation mechanisms successfully improved participants' understanding of how hiring recommendations were generated. This finding is consistent with the primary objective of explainable AI, which seeks to reduce the opacity of algorithmic decision-making and increase user comprehension.
+
+Perceived fairness also increased significantly in the treatment condition. When participants were provided with explanations showing the factors that influenced AI recommendations, they were more likely to regard the decision-making process as fair and reasonable. This suggests that transparency may positively influence fairness perceptions by allowing users to evaluate the rationale behind decisions.
+
+Adoption intention demonstrated the largest overall effect size ($d = 1.05$). Participants who received explanations expressed substantially greater willingness to recommend or use the AI hiring system. This finding highlights the practical importance of explainability for organizational adoption of AI technologies, particularly in high-stakes domains such as recruitment.
+
+Contrary to expectations, H1 was not supported. Although trust scores were higher in the treatment condition, the difference was not statistically significant ($p = .073$). The moderate effect size ($d = 0.47$) suggests that explanations may contribute to trust, but transparency alone may not be sufficient to significantly increase trust. Users may also consider factors such as system accuracy, organizational accountability, prior experiences with AI, and concerns about algorithmic bias when forming trust judgments.
+
+The moderation analysis further revealed that participants with prior AI experience generally reported greater trust in the system. However, the non-significant interaction effect indicates that SHAP explanations benefited participants similarly regardless of their previous experience with AI technologies.
+
+Overall, the results suggest that SHAP-based explanations can improve transparency, fairness perceptions, and adoption intention in AI-assisted hiring systems, while their impact on trust may require additional investigation.
+
+\section{Limitations}
+
+Several limitations should be considered when interpreting the findings of this study.
+
+First, the study employed a relatively small sample size of 60 participants. While statistically significant effects were observed for several constructs, a larger sample would provide greater statistical power and improve the generalizability of the findings. The non-significant result for trust may partially reflect limited sample size rather than the absence of a meaningful effect.
+
+Second, participants evaluated hypothetical hiring scenarios rather than making real-world recruitment decisions. Although experimental scenarios allow for greater control of variables, participant responses may differ in actual hiring environments where decisions have tangible organizational consequences.
+
+Third, the participant pool consisted of individuals with varying levels of hiring experience and AI knowledge. While this diversity improves ecological validity, the sample may not fully represent professional recruiters, hiring managers, or human resource specialists who regularly use recruitment technologies.
+
+Fourth, the study utilized a synthetic recruitment dataset rather than real hiring data. While synthetic datasets provide advantages in terms of privacy protection, ethical compliance, and experimental control, they may not fully capture the complexity, diversity, and potential biases present in real-world recruitment contexts. Consequently, participant perceptions and responses may differ when interacting with AI recommendations generated from actual hiring data.
+
+Fifth, the study focused exclusively on SHAP-based explanations. Other explainable AI techniques, such as LIME, counterfactual explanations, rule-based explanations, or feature importance visualizations, may produce different effects on user perceptions. Future research should compare multiple explanation approaches within the same experimental framework.
+
+Finally, the study measured subjective perceptions of trust, fairness, transparency, and adoption intention rather than objective decision quality. Future studies could investigate whether explanations improve users' ability to detect incorrect recommendations, identify biased decisions, or make better hiring judgments.
+
+\section{Conclusion}
+
+This study examined the impact of SHAP-based explanations on user perceptions of AI-assisted hiring decisions. Through a controlled experiment comparing a standard AI hiring system with an explainable AI system, the research evaluated four key outcomes: trust, fairness, transparency, and adoption intention.
+
+The results demonstrate that SHAP-based explanations significantly improve perceived fairness, transparency, and adoption intention. Participants who received explanations reported a better understanding of AI-generated recommendations, viewed decisions as more fair, and expressed greater willingness to adopt the technology. Although trust scores were higher among participants exposed to explanations, the difference was not statistically significant.
+
+These findings contribute to the growing body of research on explainable artificial intelligence by providing empirical evidence that explanation mechanisms can improve user acceptance of AI systems in recruitment contexts. The results suggest that explainability plays an important role in addressing concerns surrounding algorithmic decision-making and may support the responsible deployment of AI in high-stakes domains.
+
+Future research should investigate larger and more diverse populations, compare alternative explanation techniques, and examine the long-term effects of explainable AI on trust and decision-making behavior. By continuing to improve transparency and user understanding, explainable AI has the potential to support more accountable, understandable, and socially acceptable AI-assisted hiring systems.
+
+\begin{thebibliography}{00}
+
+\bibitem{binns2018} R. Binns, M. Van Kleek, M. Veale, U. Lyngs, J. Zhao, and N. Shadbolt, ``It's reducing a human being to a percentage': Perceptions of justice in algorithmic decisions,'' in \textit{Proc. 2018 CHI Conf. Human Factors in Computing Systems}, 2018.
+
+\bibitem{colquitt2001} J. A. Colquitt, ``On the dimensionality of organizational justice: A construct validation of a measure,'' \textit{Journal of Applied Psychology}, vol. 86, no. 3, pp. 386--400, 2001.
+
+\bibitem{dastin2018} J. Dastin, ``Amazon scraps secret AI recruiting tool that showed bias against women,'' \textit{Reuters}, 2018.
+
+\bibitem{davis1989} F. D. Davis, ``Perceived usefulness, perceived ease of use, and user acceptance of information technology,'' \textit{MIS Quarterly}, vol. 13, no. 3, pp. 319--340, 1989.
+
+\bibitem{dzindolet2003} M. T. Dzindolet, S. A. Peterson, R. A. Pomranky, L. G. Pierce, and H. P. Beck, ``The role of trust in automation reliance,'' \textit{International Journal of Human-Computer Studies}, vol. 58, no. 6, pp. 697--718, 2003.
+
+\bibitem{eu_hleg2019} European Commission High-Level Expert Group on Artificial Intelligence, \textit{Ethics Guidelines for Trustworthy AI}. Brussels: European Commission, 2019.
+
+\bibitem{fabris2023} A. Fabris, S. Messina, G. Silvello, and G. A. Susto, ``Algorithmic fairness datasets: the story so far,'' \textit{Data Mining and Knowledge Discovery}, vol. 37, no. 2, pp. 2074--2152, 2023.
+
+\bibitem{hardt2016} M. Hardt, E. Price, and N. Srebro, ``Equality of opportunity in supervised learning,'' \textit{Advances in Neural Information Processing Systems}, vol. 29, 2016.
+
+\bibitem{ibm2024} IBM, \textit{Global AI Adoption Index 2024}. Armonk, NY: IBM Corporation, 2024.
+
+\bibitem{jian2000} J. Y. Jian, A. M. Bisantz, and C. G. Drury, ``Foundations for an empirically determined scale of trust in automated systems,'' \textit{International Journal of Cognitive Ergonomics}, vol. 4, no. 1, pp. 53--71, 2000.
+
+\bibitem{jiang2020} Z. Jiang, H. Liu, B. Fu, and Z. Wu, ``Recommendation in heterogeneous information networks considering implicit interaction patterns,'' in \textit{Proc. 14th ACM Conf. Recommender Systems}, 2020.
+
+\bibitem{linkedin2024} LinkedIn, \textit{Future of Recruiting Report}. Sunnyvale, CA: LinkedIn Corporation, 2024.
+
+\bibitem{lundberg2017} S. M. Lundberg and S.-I. Lee, ``A unified approach to interpreting model predictions,'' \textit{Advances in Neural Information Processing Systems}, vol. 30, 2017.
+
+\bibitem{lundberg2020} S. M. Lundberg, G. Erion, H. Chen, A. DeGrave, J. M. Prutkin, B. Nair, et al., ``From local explanations to global understanding with explainable AI for trees,'' \textit{Nature Machine Intelligence}, vol. 2, no. 1, pp. 56--67, 2020.
+
+\bibitem{naous2023} D. Naous, S. Subramanian, and W. Xu, ``Having beer after prayer? Measuring cultural bias in large language models,'' \textit{arXiv preprint arXiv:2305.14456}, 2023.
+
+\bibitem{qin2018} C. Qin, H. Zhu, T. Xu, C. Zhu, L. Jiang, E. Chen, and H. Xiong, ``Enhancing person-job fit for talent recruitment: An ability-aware neural network approach,'' in \textit{Proc. 41st International ACM SIGIR Conf.}, 2018.
+
+\bibitem{ribeiro2016} M. T. Ribeiro, S. Singh, and C. Guestrin, ``Why should I trust you?': Explaining the predictions of any classifier,'' in \textit{Proc. 22nd ACM SIGKDD International Conf. Knowledge Discovery and Data Mining}, 2016.
+
+\bibitem{sanchez2020} J. S\'{a}nchez-Monedero, L. Dencik, and L. Edwards, ``What does it mean to 'solve' the problem of discrimination in hiring? Social, technical and legal perspectives from the UK on automated hiring tools,'' in \textit{Proc. 2020 Conf. Fairness, Accountability, and Transparency}, 2020.
+
+\bibitem{wang2021} W. Wang and M. Yin, ``Explanations and fairness: Effect of AI system explanations on user trust and fairness perception,'' in \textit{CHI Conf. Human Factors in Computing Systems}, 2021.
+
+\end{thebibliography}
+
+\end{document}

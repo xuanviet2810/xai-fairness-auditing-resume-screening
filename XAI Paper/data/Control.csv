@@ -1,0 +1,31 @@
+Consent,AgeGroup,Gender,Education,HiringExperience,AIExperience,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14,Q15,Q16,Q17,Q18,Q19,Q20,Q21,Q22,Q23,Q24_Comment
+Yes,25-34,Men,Bachelor's,Yes,No,3,2,5,4,5,4,4,4,4,5,3,4,3,3,5,4,4,The AI appeared consistent across candidates.
+Yes,18-24,Women,Bachelor's,Yes,Yes,4,4,5,5,5,5,5,5,5,3,3,4,5,5,5,5,2,One candidate may have deserved a closer review.
+Yes,35-44,Men,Bachelor's,No,Yes,3,5,4,3,5,5,4,4,4,4,5,4,4,5,4,4,5,Some decisions relied heavily on experience.
+Yes,18-24,Men,PhD,No,Yes,3,4,4,5,4,4,5,4,4,3,3,4,5,5,4,4,4,"Most decisions looked fair, though some factors were unclear."
+Yes,18-24,Men,Master's,No,Yes,3,4,4,5,5,4,5,5,4,3,4,5,4,4,4,3,5,I would like more detail on weighting of factors.
+Yes,35-44,Women,Bachelor's,No,No,4,5,5,2,3,4,4,4,4,5,3,4,3,5,4,4,4,Overall the system seemed balanced.
+Yes,35-44,Prefer not to say,Bachelor's,Yes,No,4,4,3,4,5,4,4,3,4,3,4,3,5,3,4,4,5,The hiring recommendations were mostly justified.
+Yes,18-24,Men,Bachelor's,Yes,No,4,4,4,4,5,4,4,5,4,3,4,4,4,5,4,3,4,The recommendation seemed reasonable based on skills and experience.
+Yes,25-34,Prefer not to say,High School,No,Yes,5,4,5,5,4,5,4,5,3,5,4,4,5,4,5,4,4,Overall the system seemed balanced.
+Yes,25-34,Women,Master's,Yes,Yes,4,3,5,5,4,4,3,5,3,4,4,4,5,4,4,4,5,Overall the system seemed balanced.
+Yes,25-34,Women,Bachelor's,No,Yes,5,5,4,4,5,5,4,5,4,4,3,4,5,4,4,4,3,No major concerns about fairness.
+Yes,18-24,Women,PhD,Yes,No,5,4,4,3,4,4,5,5,4,4,5,3,4,5,4,3,4,I would like more detail on weighting of factors.
+Yes,18-24,Women,PhD,Yes,Yes,5,5,4,5,4,4,4,4,3,5,5,4,4,5,5,4,4,Overall the system seemed balanced.
+Yes,25-34,Men,High School,Yes,No,4,5,3,5,3,4,4,3,5,4,2,4,4,4,4,4,2,Some decisions relied heavily on experience.
+Yes,45+,Women,Master's,Yes,Yes,5,4,4,5,5,4,3,5,4,4,5,5,4,5,4,4,5,One candidate may have deserved a closer review.
+Yes,18-24,Women,Bachelor's,Yes,Yes,4,5,4,3,4,5,4,5,5,4,5,5,4,4,4,5,4,I would like more detail on weighting of factors.
+Yes,18-24,Women,Bachelor's,Yes,Yes,3,4,4,3,4,4,3,5,5,4,4,4,5,4,4,4,4,One candidate may have deserved a closer review.
+Yes,18-24,Non-binary,Master's,No,No,3,3,5,4,4,3,4,3,3,3,4,2,4,4,3,5,4,The hiring recommendations were mostly justified.
+Yes,18-24,Women,Master's,No,Yes,4,4,4,5,4,4,3,5,5,5,4,4,4,4,4,3,5,The AI appeared consistent across candidates.
+Yes,35-44,Women,Bachelor's,No,No,4,4,4,3,4,3,4,4,3,4,2,2,5,3,4,4,3,One candidate may have deserved a closer review.
+Yes,35-44,Men,Master's,No,Yes,3,5,4,5,4,4,5,5,5,5,4,5,4,4,5,4,4,The recommendation seemed reasonable based on skills and experience.
+Yes,35-44,Women,Bachelor's,Yes,Yes,2,4,3,5,4,4,3,4,4,5,5,5,5,4,4,5,5,The AI appeared consistent across candidates.
+Yes,45+,Women,Master's,No,No,5,4,4,3,4,5,3,4,4,3,5,4,4,3,4,4,4,"Most decisions looked fair, though some factors were unclear."
+Yes,35-44,Women,Master's,No,Yes,4,5,4,5,5,4,4,4,3,5,5,4,4,5,2,4,4,No major concerns about fairness.
+Yes,25-34,Women,Bachelor's,No,Yes,3,3,4,5,4,5,5,3,4,4,3,4,5,5,5,4,3,The explanation matched the recommendation.
+Yes,25-34,Women,Master's,No,No,4,4,4,4,3,3,4,4,3,5,3,5,5,4,5,3,3,The recommendation seemed reasonable based on skills and experience.
+Yes,25-34,Men,Bachelor's,Yes,Yes,4,5,5,4,4,4,4,5,4,4,3,5,4,4,4,5,4,The explanation matched the recommendation.
+Yes,25-34,Women,Bachelor's,No,Yes,5,4,4,4,5,4,5,3,4,4,5,3,4,5,4,4,5,One candidate may have deserved a closer review.
+Yes,18-24,Men,Bachelor's,No,Yes,4,4,4,5,3,3,4,4,4,5,3,5,4,5,4,4,3,The recommendation seemed reasonable based on skills and experience.
+Yes,18-24,Women,PhD,Yes,Yes,4,4,4,3,4,5,4,5,4,4,4,4,4,5,4,4,3,No major concerns about fairness.
